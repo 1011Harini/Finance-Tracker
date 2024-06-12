@@ -1,61 +1,23 @@
-const express = require('express');
-const cors = require('cors');
-
-const app = express();
-app.use(express.json());
-app.use(cors());
-
-let transactions = [];
-
-app.get('/api/transactions', (req, res) => {
-  res.status(200).json(transactions);
-});
-// Add a new transaction
-app.post('/api/transactions', (req, res) => {
-  const { title, amount } = req.body;
-  const newTransaction = {
-    id: Math.floor(Math.random() * 100000000),
-    title,
-    amount
-  };
-  transactions.push(newTransaction);
-  res.status(201).json(newTransaction);
-});
-// Delete a transaction by ID
-app.delete('/api/transactions/:id', (req, res) => {
-  const id = parseInt(req.params.id);
-  const initialLength = transactions.length;
-  transactions = transactions.filter(transaction => transaction.id !== id);
-  if (transactions.length === initialLength) {
-    return res.status(404).json({ message: 'Transaction not found.' });
-  }
-  res.status(200).json({ id: id });
-});
-
-// Update a transaction by ID
-app.put('/api/transactions/:id', (req, res) => {
-  const id = parseInt(req.params.id);
-  const { title, amount } = req.body;
-
-  let updatedTransaction = null;
-  transactions = transactions.map(transaction => {
-    if (transaction.id === id) {
-      updatedTransaction = {
-        id: transaction.id,
-        title: title || transaction.title,
-        amount: amount || transaction.amount
-      };
-      return updatedTransaction;
+const express=require('express');
+const cors=require('cors');
+const mongoose=require('mongoose');
+const app=express();
+app.use(cors())
+app.use(express.json())
+const router=require('./routes/expenseRouter')
+const connectMDB=async()=>
+    {
+        try{
+            const conn=await mongoose.connect('mongodb+srv://Harini:Harini1011@expensecluster.serojs4.mongodb.net/Datas?retryWrites=true&w=majority&appName=Expensecluster')
+            console.log("MongoDB connected");
+        }
+        catch(error)
+        {
+            console.log(error);
+        }
     }
-    return transaction;
-  });
-
-  if (!updatedTransaction) {
-    return res.status(404).json({ message: 'Transaction not found.' });
-  }
-
-  res.status(200).json(updatedTransaction);
-});
-
-const PORT = 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(5000, () => {
+    console.log("app is running");
+})
+app.use('/exp',router);
+connectMDB()
